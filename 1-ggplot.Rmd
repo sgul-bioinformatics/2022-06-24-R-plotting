@@ -1,0 +1,138 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+library(tidyverse)
+```
+
+* Load data
+
+```{r}
+read_csv('stats.csv')
+read_tsv('stats.tsv')
+
+library(readxl)
+
+read_xlsx('stats.xlsx')
+```
+
+* Load from a database
+
+```{r}
+library(RSQLite)
+
+conn <- dbConnect(RSQLite::SQLite(), "stats.db")
+
+dbGetQuery(conn, "SELECT * FROM stats")
+```
+
+* filter data
+* select data
+* perform calculations
+* rename columns
+
+```{r}
+stats <- read_xlsx('stats.xlsx')
+
+stats %>%
+  filter(reads > 1000000, coverage > 110) %>%
+  mutate(total=reads+coverage) %>%
+  rename(counts=reads)
+```
+
+```{r fig.width=10}
+count <- stats %>%
+  ggplot(aes(x=isolate, y=reads)) +
+    geom_bar(stat="identity", colour='black', fill='blue') +
+    ggtitle("Read counts") +
+    labs(x="Isolate name", y="Read count") +
+    theme_bw() +
+    theme(
+      axis.text.x = element_text(angle=-90, hjust=1, vjust=0.5)
+    ) 
+#count + coord_flip()
+count
+```
+
+```{r}
+stats %>%
+  filter(grepl("DRP",isolate)) %>%
+  ggplot(aes(x=isolate, y=reads)) +
+    geom_bar(stat="identity") +
+    ggtitle("Read counts") +
+    labs(x="Isolate name", y="Read count") +
+    geom_text(aes(label=reads), vjust=-0.3, size=3.5) +
+    theme_bw()
+```
+
+
+```{r}
+coverage <- stats %>%
+  ggplot(aes(x=isolate, y=coverage)) +
+    geom_bar(stat="identity", colour='black', fill='#888888') +
+    ggtitle("Coverage") +
+    labs(x="Isolate name", y="Coverage") +
+    theme_bw() +
+    theme(
+      axis.text.x = element_text(angle=-90, hjust=1, vjust=0.5)
+    ) 
+coverage
+```
+
+* combining plots
+
+```{r fig.height=10, fig.width=20}
+stats %>%
+  pivot_longer(cols=c(-isolate), names_to = 'counts', values_to = 'values') %>%
+  ggplot(aes(x=isolate, y=values, fill=counts)) +
+    geom_bar(stat='identity', position="dodge") +
+    scale_y_log10() +
+    theme_bw() +
+    theme(
+      axis.text.x = element_text(angle=-90, hjust=1, vjust=0.5),
+      legend.position="right",
+      legend.title = element_blank()
+    ) 
+```
+
+```{r fig.height=10, fig.width=20}
+library(patchwork)
+
+count / coverage
+```
+```{r fig.height=10, fig.width=20}
+count / coverage + plot_annotation(tag_levels = 'A') + plot_layout(guides = "collect")
+```
+
+```{r}
+stats %>%
+  ggplot(aes(x=isolate, y=coverage)) +
+    geom_point() +
+    theme_bw() +
+    theme(
+      axis.text.x = element_text(angle=-90, hjust=1, vjust=0.5)
+    ) 
+
+stats %>%
+  ggplot(aes(x=reads, y=coverage)) +
+    geom_point() +
+    geom_smooth() +
+    theme_bw() +
+    theme(
+      axis.text.x = element_text(angle=-90, hjust=1, vjust=0.5)
+    ) 
+```
+
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
