@@ -1,28 +1,69 @@
 ---
-title: "R Notebook"
-output: html_notebook
+title: "Using ggplot"
+output:
+  html_notebook:
+    code_folding: show
+    highlight: tango
+    number_sections: no
+    theme: sandstone
+    toc: yes
+    toc_depth: 5
+    toc_float: no
+    df_print: paged
 ---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**_Please follow the instructions in the README file before starting this tutorial._**
+
+<hr style="border:2px solid gray"> </hr>
 
 This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
 
 Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
 
+<hr style="border:2px solid gray"> </hr>
+
+## Loading the required libraries
+
+* We will use the various packages of the [tidyverse](https://www.tidyverse.org/)
+* This includes the popular plotting library ggplot2
+* Lets load the packages
+* if these are not installed, then first install from the mentu above or with `install.packages("tidyverse")`
+
+
 ```{r}
 library(tidyverse)
 ```
 
-* Load data
+## Loading some data
+
+* We now need load some data to plot
+* We can load this from most of the popular formats
+
+* From a comma separated formated file (csv):
 
 ```{r}
-read_csv('stats.csv')
-read_tsv('stats.tsv')
+read_csv('stats.csv', show_col_types = FALSE)
+```
 
+* From a tab separated formated file (tsv):
+
+```{r}
+read_tsv('stats.tsv', show_col_types = FALSE)
+```
+
+* From an excel file, in order to do this we need to first load the `readxl` package
+
+```{r}
 library(readxl)
 
 read_xlsx('stats.xlsx')
 ```
 
-* Load from a database
+* We can also load data directly from a database, to access a local sqlite3 database, first load the `RSQLite` package (to load from MIcrosoft Access you could use the `RODBC` package)
 
 ```{r}
 library(RSQLite)
@@ -32,83 +73,188 @@ conn <- dbConnect(RSQLite::SQLite(), "stats.db")
 dbGetQuery(conn, "SELECT * FROM stats")
 ```
 
-* filter data
-* select data
-* perform calculations
-* rename columns
+* Above we loaded the data and printed it to the screen. But we need to keep the data in a variable:
 
 ```{r}
 stats <- read_xlsx('stats.xlsx')
-
-stats %>%
-  filter(reads > 1000000, coverage > 110) %>%
-  mutate(total=reads+coverage) %>%
-  rename(counts=reads)
 ```
 
+* the data is now stored in the `stats` variable, we can erify this by just running the variable name
+
+```{r}
+stats
+```
+
+* We can generate nicer looking tables for our reports using the `DT` package
+
+```{r}
+library(DT)
+
+datatable(stats)
+```
+
+* if we need to we can use the pipe symbol `%>%` to run other filtering and renaming functions on our data, here we use the `filter` function to filter the data by the `reads` column. Notice that the number of rows reduces from 58 to 21
+
+```{r}
+stats %>%
+  filter(reads > 1000000)
+```
+
+* here we filter by bother the `reads` and the `coverage` column, we now only have 8 rows
+
+```{r}
+stats %>%
+  filter(reads > 1000000, coverage > 110)
+```
+
+* here we use the `mutate` function to add a new column called `total` by calculating the sum of the `coverage` and the `reads` columns
+
+
+```{r}
+stats %>%
+  mutate(total = reads + coverage)
+```
+
+* here we use the `rename` function to change the `reads` column name to `counts`
+
+
+```{r}
+stats %>%
+  rename(counts = reads)
+```
+
+<hr style="border:2px solid gray"> </hr>
+
+## Plotting with ggplot
+
+* ggplot allows us to generate figures in layers
+* initially we generate the coordinate system
+
 ```{r fig.width=10}
-count <- stats %>%
+ggplot(stats, aes(x=isolate, y=reads)) 
+```
+
+* there is no actually plot here as we have not told ggplot which kind of plot we want
+* we add the layers by simply using the '+' operator. Here we specify a bar chart
+
+```{r fig.width=10}
+ggplot(stats, aes(x=isolate, y=reads)) +
+  geom_bar(stat="identity")
+```
+
+* we can easily specifiy some colours
+
+```{r fig.width=10}
+ggplot(stats, aes(x=isolate, y=reads)) +
+  geom_bar(stat="identity", colour='black', fill='blue')
+```
+
+* colours can be defined simply as above, but more control can be gained by specifying html web colours, a colour selector can be found [here](https://www.w3schools.com/colors/colors_picker.asp)
+
+```{r fig.width=10}
+ggplot(stats, aes(x=isolate, y=reads)) +
+    geom_bar(stat="identity", colour='#ff0066', fill='#cc0000')
+```
+
+* We can change other stylistic parts of the chart with themes, we can set the general theme with some prebuilt styles e.g. `theme_bw`, `theme_minimal`, `theme_classic`, `theme_dark`; more details and examples can be found at https://ggplot2.tidyverse.org/reference/ggtheme.html
+* Lets try out the `theme_bw` theme
+
+```{r fig.width=10}
+ggplot(stats, aes(x=isolate, y=reads)) +
+    geom_bar(stat="identity", colour='black', fill='blue') +
+    theme_bw()
+```
+
+* the x-axis labels overlap and are unreadable, so lets rotate them using `theme`
+
+```{r fig.width=10}
+ggplot(stats, aes(x=isolate, y=reads)) +
+  geom_bar(stat="identity", colour='black', fill='blue') +
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle=-90)
+  )
+```
+
+* the x-axis labels are not quite aligned to the tick marks, we can adjust them with `vjust` and `hjust`
+
+```{r fig.width=10}
+ggplot(stats, aes(x=isolate, y=reads)) +
+  geom_bar(stat="identity", colour='black', fill='blue') +
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle=-90, hjust=1, vjust=0.5)
+  )
+```
+
+* we can now change the axes labels and add a title
+
+```{r fig.width=10}
+ggplot(stats, aes(x=isolate, y=reads)) +
+  geom_bar(stat="identity", colour='black', fill='blue') +
+  ggtitle("Read counts") +
+  labs(x="Isolate name", y="Read count") +  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle=-90, hjust=1, vjust=0.5)
+  )
+```
+
+* if we prefer we can flip the whole chart 
+
+```{r fig.width=10, fig.height=10}
+ggplot(stats, aes(x=isolate, y=reads)) +
+  geom_bar(stat="identity", colour='black', fill='blue') +
+  ggtitle("Read counts") +
+  labs(x="Isolate name", y="Read count") +  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle=-90, hjust=1, vjust=0.5)
+  ) +
+  coord_flip()
+```
+
+* in the above examples we provided the `stats` data object to the `ggplot` function. We can just as easily pipe the data into the ggplot function using `%>%`
+
+```{r fig.width=10}
+stats %>%
+  ggplot(aes(x=isolate, y=reads)) +
+    geom_bar(stat="identity", colour='black', fill='blue') +
+    ggtitle("Read counts") +
+    labs(x="Isolate name", y="Read count") +  theme_bw() +
+    theme(
+      axis.text.x = element_text(angle=-90, hjust=1, vjust=0.5)
+    )
+```
+
+* This allows us to manipulate the data before we plot it, for example we can apply a filter and only plot certain samples. `grepl` is just a pattern matching function, so filters isolates with the string `SER` in their name
+
+```{r}
+stats %>%
+  filter(grepl("SER",isolate)) %>%
   ggplot(aes(x=isolate, y=reads)) +
     geom_bar(stat="identity", colour='black', fill='blue') +
     ggtitle("Read counts") +
     labs(x="Isolate name", y="Read count") +
-    theme_bw() +
-    theme(
-      axis.text.x = element_text(angle=-90, hjust=1, vjust=0.5)
-    ) 
-#count + coord_flip()
-count
+    theme_bw()
 ```
+
+* now that we have a smaller plot, we can also add other useful information, like the actual values of the bars, using `geom_text`
 
 ```{r}
 stats %>%
-  filter(grepl("DRP",isolate)) %>%
+  filter(grepl("SER",isolate)) %>%
   ggplot(aes(x=isolate, y=reads)) +
-    geom_bar(stat="identity") +
+    geom_bar(stat="identity", colour='black', fill='blue') +
     ggtitle("Read counts") +
     labs(x="Isolate name", y="Read count") +
     geom_text(aes(label=reads), vjust=-0.3, size=3.5) +
     theme_bw()
 ```
 
+<hr style="border:2px solid gray"> </hr>
 
-```{r}
-coverage <- stats %>%
-  ggplot(aes(x=isolate, y=coverage)) +
-    geom_bar(stat="identity", colour='black', fill='#888888') +
-    ggtitle("Coverage") +
-    labs(x="Isolate name", y="Coverage") +
-    theme_bw() +
-    theme(
-      axis.text.x = element_text(angle=-90, hjust=1, vjust=0.5)
-    ) 
-coverage
-```
+### Plotting a scattor plot
 
-* combining plots
-
-```{r fig.height=10, fig.width=20}
-stats %>%
-  pivot_longer(cols=c(-isolate), names_to = 'counts', values_to = 'values') %>%
-  ggplot(aes(x=isolate, y=values, fill=counts)) +
-    geom_bar(stat='identity', position="dodge") +
-    scale_y_log10() +
-    theme_bw() +
-    theme(
-      axis.text.x = element_text(angle=-90, hjust=1, vjust=0.5),
-      legend.position="right",
-      legend.title = element_blank()
-    ) 
-```
-
-```{r fig.height=10, fig.width=20}
-library(patchwork)
-
-count / coverage
-```
-```{r fig.height=10, fig.width=20}
-count / coverage + plot_annotation(tag_levels = 'A') + plot_layout(guides = "collect")
-```
+* Lets plot a differnt type of graph, this time plotting `reads` against `coverage`
 
 ```{r}
 stats %>%
@@ -118,7 +264,11 @@ stats %>%
     theme(
       axis.text.x = element_text(angle=-90, hjust=1, vjust=0.5)
     ) 
+```
 
+* we can easily add a smoothed regression line
+
+```{r}
 stats %>%
   ggplot(aes(x=reads, y=coverage)) +
     geom_point() +
@@ -127,12 +277,92 @@ stats %>%
     theme(
       axis.text.x = element_text(angle=-90, hjust=1, vjust=0.5)
     ) 
+```    
+    
+<hr style="border:2px solid gray"> </hr>
+
+### Combining plots into a figure
+
+* Lets plot both the reads and the coverage plot, only this time we will store the plots in the variables `reads` and `coverage`, notice that they won't be printed when you run the code
+
+```{r}
+reads <- stats %>%
+  ggplot(aes(x=isolate, y=reads)) +
+    geom_bar(stat="identity", colour='black', fill='blue') +
+    ggtitle("Read counts") +
+    labs(x="Isolate name", y="Read count") +  theme_bw() +
+    theme(
+      axis.text.x = element_text(angle=-90, hjust=1, vjust=0.5)
+    )
+
+coverage <- stats %>%
+  ggplot(aes(x=isolate, y=coverage)) +
+    geom_bar(stat="identity", colour='black', fill='#888888') +
+    ggtitle("Coverage") +
+    labs(x="Isolate name", y="Coverage") +
+    theme_bw() +
+    theme(
+      axis.text.x = element_text(angle=-90, hjust=1, vjust=0.5)
+    )
 ```
 
+* but we can show the plots by just "running" the variable names
 
+```{r}
+reads
+coverage
+```
+
+* we can now make a combined plot usingt the `patchwork` package
+* firstly side by side with the '+' operator
+
+```{r}
+library(patchwork)
+
+reads + coverage
+```
+
+* if we want them above and below we change the '+' operator to '/'
+
+```{r fig.height=10, fig.width=20}
+reads / coverage
+```
+
+* note that we could more plots to the figure (reusing plots for demonstration here)
+
+```{r fig.height=10, fig.width=20}
+( reads + coverage ) / ( reads + coverage )
+```
+
+* We can add subplot labels (A, B etc)
+
+```{r fig.height=10, fig.width=20}
+reads / coverage + plot_annotation(tag_levels = 'A') + plot_layout(guides = "collect")
+```
+
+* Finally if we wish we can make interactve versions of our plots using the `plotly` package
+* try selection regions of the plot and zooimng,using the menu ribbon on the top right of the plot
+
+```{r fig.height=5, fig.width=9}
+library(plotly)
+
+ggplotly(coverage)
+```
+
+<hr style="border:2px solid gray"> </hr>
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
 
 When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
 
 The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+<hr style="border:2px solid gray"> </hr>
+
+# Session details
+
+* Generate document version details
+
+```{r}
+sessionInfo()
+```
