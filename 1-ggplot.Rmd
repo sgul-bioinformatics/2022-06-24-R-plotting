@@ -93,7 +93,7 @@ library(DT)
 datatable(stats)
 ```
 
-* if we need to we can use the pipe symbol `%>%` to run other filtering and renaming functions on our data, here we use the `filter` function to filter the data by the `reads` column. Notice that the number of rows reduces from 58 to 21
+* if we need to we can use the pipe symbol `%>%` to run other filtering and renaming functions on our data, here we use the `filter()` function to filter the data by the `reads` column. Notice that the number of rows reduces from 58 to 21
 
 ```{r}
 stats %>%
@@ -107,7 +107,7 @@ stats %>%
   filter(reads > 1000000, coverage > 110)
 ```
 
-* here we use the `mutate` function to add a new column called `total` by calculating the sum of the `coverage` and the `reads` columns
+* here we use the `mutate()` function to add a new column called `total` by calculating the sum of the `coverage` and the `reads` columns
 
 
 ```{r}
@@ -115,7 +115,7 @@ stats %>%
   mutate(total = reads + coverage)
 ```
 
-* here we use the `rename` function to change the `reads` column name to `counts`
+* here we use the `rename()` function to change the `reads` column name to `counts`
 
 
 ```{r}
@@ -156,8 +156,8 @@ ggplot(stats, aes(x=isolate, y=reads)) +
     geom_bar(stat="identity", colour='#ff0066', fill='#cc0000')
 ```
 
-* We can change other stylistic parts of the chart with themes, we can set the general theme with some prebuilt styles e.g. `theme_bw`, `theme_minimal`, `theme_classic`, `theme_dark`; more details and examples can be found at https://ggplot2.tidyverse.org/reference/ggtheme.html
-* Lets try out the `theme_bw` theme
+* We can change other stylistic parts of the chart with themes, we can set the general theme with some prebuilt styles e.g. `theme_bw()`, `theme_minimal()`, `theme_classic()`; more details and examples can be found at https://ggplot2.tidyverse.org/reference/ggtheme.html
+* Lets try out the `theme_bw()` theme
 
 ```{r fig.width=10}
 ggplot(stats, aes(x=isolate, y=reads)) +
@@ -165,7 +165,7 @@ ggplot(stats, aes(x=isolate, y=reads)) +
     theme_bw()
 ```
 
-* the x-axis labels overlap and are unreadable, so lets rotate them using `theme`
+* the x-axis labels overlap and are unreadable, so lets rotate them using `theme()`
 
 ```{r fig.width=10}
 ggplot(stats, aes(x=isolate, y=reads)) +
@@ -176,7 +176,7 @@ ggplot(stats, aes(x=isolate, y=reads)) +
   )
 ```
 
-* the x-axis labels are not quite aligned to the tick marks, we can adjust them with `vjust` and `hjust`
+* the x-axis labels are not quite aligned to the tick marks, we can adjust them with the `vjust` and `hjust` parameters
 
 ```{r fig.width=10}
 ggplot(stats, aes(x=isolate, y=reads)) +
@@ -212,7 +212,7 @@ ggplot(stats, aes(x=isolate, y=reads)) +
   coord_flip()
 ```
 
-* in the above examples we provided the `stats` data object to the `ggplot` function. We can just as easily pipe the data into the ggplot function using `%>%`
+* in the above examples we provided the `stats` data object to the `ggplot()` function. We can just as easily pipe the data into the `ggplot()` function using `%>%`
 
 ```{r fig.width=10}
 stats %>%
@@ -225,7 +225,7 @@ stats %>%
     )
 ```
 
-* This allows us to manipulate the data before we plot it, for example we can apply a filter and only plot certain samples. `grepl` is just a pattern matching function, so filters isolates with the string `SER` in their name
+* This allows us to manipulate the data before we plot it, for example we can apply a filter and only plot certain samples. `grepl()` is just a pattern matching function, so filters isolates with the string `SER` in their name
 
 ```{r}
 stats %>%
@@ -237,7 +237,7 @@ stats %>%
     theme_bw()
 ```
 
-* now that we have a smaller plot, we can also add other useful information, like the actual values of the bars, using `geom_text`
+* now that we have a smaller plot, we can also add other useful information, like the actual values of the bars, using `geom_text()`
 
 ```{r}
 stats %>%
@@ -252,13 +252,13 @@ stats %>%
 
 <hr style="border:2px solid gray"> </hr>
 
-### Plotting a scattor plot
+### Plotting a scatter plot
 
-* Lets plot a differnt type of graph, this time plotting `reads` against `coverage`
+* Lets plot a different type of graph, this time plotting `reads` against `coverage`
 
 ```{r}
 stats %>%
-  ggplot(aes(x=isolate, y=coverage)) +
+  ggplot(aes(x=reads, y=coverage)) +
     geom_point() +
     theme_bw() +
     theme(
@@ -266,7 +266,7 @@ stats %>%
     ) 
 ```
 
-* we can easily add a smoothed regression line
+* we can easily add a smoothed regression line with `geom_smooth()`
 
 ```{r}
 stats %>%
@@ -341,7 +341,7 @@ reads / coverage + plot_annotation(tag_levels = 'A') + plot_layout(guides = "col
 ```
 
 * Finally if we wish we can make interactve versions of our plots using the `plotly` package
-* try selection regions of the plot and zooimng,using the menu ribbon on the top right of the plot
+* try selection regions of the plot and zooming,using the menu ribbon on the top right of the plot
 
 ```{r fig.height=5, fig.width=9}
 library(plotly)
