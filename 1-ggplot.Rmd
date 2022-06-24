@@ -278,7 +278,22 @@ stats %>%
       axis.text.x = element_text(angle=-90, hjust=1, vjust=0.5)
     ) 
 ```    
-    
+  
+* if we need to we can limit the region of the plot to include, using `xlim()` and/or `ylim()`
+
+```{r}
+stats %>%
+  ggplot(aes(x=reads, y=coverage)) +
+    geom_point() +
+    geom_smooth() +
+    xlim(c(0, 600000)) + 
+    ylim(c(0, 100)) +
+    theme_bw() +
+    theme(
+      axis.text.x = element_text(angle=-90, hjust=1, vjust=0.5)
+    ) 
+```
+
 <hr style="border:2px solid gray"> </hr>
 
 ## Combining plots into a figure
@@ -351,22 +366,32 @@ ggplotly(coverage)
 
 # Exercise
 
-* load the dataset stored in `data.xlsx`, plot a bar chart of someting against someting
+* load the dataset stored in `/data.csv`, plot a bar chart of `county` against `popadults` for the state of Ohio (OH)
+* remember how to rotate the x axis labels to make them more readable
 
 ```{r}
-
 
 ```
 
 
-* Using the same dataset, calculate the total and generate  a scatter plot of ... against ... 
+* Using the same dataset, calculate the total and generate  a scatter plot of `area` against `poptotal` 
 * Try adding a regression line using the `glm` method
 
 ```{r}
 
-
 ```
 
+* Try removing some of the outliers from the plot. Hint, use `xlim()` and/or `ylim()`
+* Change the size and colour of the points? Hint: check the help with `?geom_line`
+* Colour the points by the `state` column
+* Set the size of the points according to the `popdensity` column
+* Move the legend position to the bottom of the chart. Hint: check the help with `?theme`
+* Add title and a subtitle
+* Change the axes titles to 'Population total' and 'County area'
+* Improve the labels on the y-axis. Hint: look at `?scale_y_continuous`
+
+* Check out this site for lots of other example plots
+http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html#1.%20Correlation
 
 <hr style="border:2px solid gray"> </hr>
 
