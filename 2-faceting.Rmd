@@ -26,28 +26,29 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 
 <hr style="border:2px solid gray"> </hr>
 
-# Loading the libraries
+# Loading the packages
 
 ```{r}
 library(tidyverse)
 ```
 
-# Erythromycin resistance
+<hr style="border:2px solid gray"> </hr>
 
-* Erythromycin resistance in CC22's conferred by 2473 bp plasmid encoding *repL* and *ermC*
+# Plotting with ggplot
 
-NC_018969.txt from https://www.ncbi.nlm.nih.gov/pubmed/20943864/
+## Plotting genome coverage
 
+* Erythromycin resistance can be conferred by 2473 bp plasmid encoding *repL* and *ermC*
 * First lets load the overall genome coverage statistics for each isolate
 
 ```{r}
-coverages.NC_017763 <- read_tsv('stats.coverage.NC_017763.txt', show_col_types = FALSE)
+coverages.NC_017763 <- read_tsv('data/stats.coverage.NC_017763.txt', show_col_types = FALSE)
 ```
 
 * First lets load the read depths for each isolate mapped to the reference plasmid
 
 ```{r}
-depths <- 'NC_018969.tsv'
+depths <- 'data/NC_018969.tsv'
 
 data <- read_tsv(file=depths, show_col_types = FALSE)
 data
@@ -125,7 +126,12 @@ long_data %>%
     geom_segment(aes(x=1292,y=1500,xend=2026,yend=1500),size=3,color='red',arrow=arrow(length=unit(0.4,"cm"))) +
     theme_bw()
 ```
-* if we want to plot the same grph for all isolates we can use `facet_wrap()`. not the removal of the `filter()` function and the inclusion of the `group=isolate` in the `ggplot()` function, then we apply `facet_wrap(~isolate)` to complete the process
+
+<hr style="border:2px solid gray"> </hr>
+
+## Plotting multiple charts
+
+* if we want to plot the same graph for all isolates we can use `facet_wrap()`. not the removal of the `filter()` function and the inclusion of the `group=isolate` in the `ggplot()` function, then we apply `facet_wrap(~isolate)` to complete the process
 
 ```{r fig.height=20, fig.width=20}
 long_data %>%
@@ -147,22 +153,14 @@ long_data %>%
 ggsave('NC_018969-mapping.png', height=20, width=20)
 ```
 
+<hr style="border:2px solid gray"> </hr>
+
 # Exercise
 
-* load the dataset stored in `/data.csv`, plot a bar chart of `county` against `popadults`, but plot for all states
-
+* load the dataset stored in `data/data.csv`, plot a bar chart of `county` against `popadults`, but plot for all states
 
 ```{r}
-data <- read_csv('data.csv')
 
-data %>%
-  ggplot(aes(x=county, y=popadults, group=state, color=category)) +
-    geom_point() +
-    scale_y_log10(labels=scales::comma) +
-    geom_smooth() +
-    facet_wrap(~state, ncol = 5)
-
-data
 ```
 
 * set the y-axes to use a log scale
@@ -170,7 +168,6 @@ data
 * add a regresson line
 * colour the points by the `category` column
 * include all the subplots in one row. Hint: check `?facet_wrap`
-
 
 <hr style="border:2px solid gray"> </hr>
 
