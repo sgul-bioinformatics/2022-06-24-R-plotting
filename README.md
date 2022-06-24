@@ -7,12 +7,12 @@ St. George's University of London
 ## Key concepts covered  
 
 1. Working in RStudio  
-2. Scripting  
-3. Variables  
-4. Data types (numbers, text, boolean)  
-5. Data structures (scalar, vector, matrix, data frame)  
-6. Functions  
-7. Subsetting 1 and 2-dimensional data structures  
+2. Loading data
+3. Plotting bar charts
+4. Plotting scatter plots  
+5. Plotting box plots  
+6. Plotting line graphs
+7. Plotting dendrograms  
 
 
 ## Preparation for the workshop  
@@ -35,7 +35,7 @@ Alternatively, to run RStudio on your own computer, [install first R](https://ww
 4. Paste the following address into the "Repository URL" field: https://github.com/sgul-bioinformatics/2022-06-24-R-plotting  
 5. Press tab key ("Project directory name" field will be filled automatically)  
 6. Choose a desired folder in the "Create project as subdirectory of..." field  
-7. Choose **'R version 3.5.3'** in the dropdown box at the bottom of the window. 
+7. Choose **'R version 4.1.1'** in the dropdown box at the bottom of the window. 
 8. Click the "Create project" button  
-9. Open the first script by clicking on "basics.R" in the bottom-right panel of the RStudio window.
+9. Open the first script by clicking on "1-ggplot.Rmd" in the bottom-right panel of the RStudio window.
 
