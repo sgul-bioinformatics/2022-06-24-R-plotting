@@ -147,6 +147,31 @@ long_data %>%
 ggsave('NC_018969-mapping.png', height=20, width=20)
 ```
 
+# Exercise
+
+* load the dataset stored in `/data.csv`, plot a bar chart of `county` against `popadults`, but plot for all states
+
+
+```{r}
+data <- read_csv('data.csv')
+
+data %>%
+  ggplot(aes(x=county, y=popadults, group=state, color=category)) +
+    geom_point() +
+    scale_y_log10(labels=scales::comma) +
+    geom_smooth() +
+    facet_wrap(~state, ncol = 5)
+
+data
+```
+
+* set the y-axes to use a log scale
+* change the y-axes labels to use commas in the numbers
+* add a regresson line
+* colour the points by the `category` column
+* include all the subplots in one row. Hint: check `?facet_wrap`
+
+
 <hr style="border:2px solid gray"> </hr>
 
 # Session details
