@@ -46,13 +46,13 @@ library(tidyverse)
 * From a comma separated formated file (csv):
 
 ```{r}
-read_csv('stats.csv', show_col_types = FALSE)
+read_csv('data/stats.csv', show_col_types = FALSE)
 ```
 
 * From a tab separated formated file (tsv):
 
 ```{r}
-read_tsv('stats.tsv', show_col_types = FALSE)
+read_tsv('data/stats.tsv', show_col_types = FALSE)
 ```
 
 * From an excel file, in order to do this we need to first load the `readxl` package
@@ -60,7 +60,7 @@ read_tsv('stats.tsv', show_col_types = FALSE)
 ```{r}
 library(readxl)
 
-read_xlsx('stats.xlsx')
+read_xlsx('data/stats.xlsx')
 ```
 
 * We can also load data directly from a database, to access a local sqlite3 database, first load the `RSQLite` package (to load from MIcrosoft Access you could use the `RODBC` package)
@@ -68,7 +68,7 @@ read_xlsx('stats.xlsx')
 ```{r}
 library(RSQLite)
 
-conn <- dbConnect(RSQLite::SQLite(), "stats.db")
+conn <- dbConnect(RSQLite::SQLite(), "data/stats.db")
 
 dbGetQuery(conn, "SELECT * FROM stats")
 ```
@@ -76,7 +76,7 @@ dbGetQuery(conn, "SELECT * FROM stats")
 * Above we loaded the data and printed it to the screen. But we need to keep the data in a variable:
 
 ```{r}
-stats <- read_xlsx('stats.xlsx')
+stats <- read_xlsx('data/stats.xlsx')
 ```
 
 * the data is now stored in the `stats` variable, we can erify this by just running the variable name
@@ -127,15 +127,18 @@ stats %>%
 
 # Plotting with ggplot
 
+## Plotting a bar charts
+
 * ggplot allows us to generate figures in layers
 * initially we generate the coordinate system
+* `ggplot()` need the name of the variable containing the data and the variables to use in the plot
 
 ```{r fig.width=10}
 ggplot(stats, aes(x=isolate, y=reads)) 
 ```
 
-* there is no actually plot here as we have not told ggplot which kind of plot we want
-* we add the layers by simply using the '+' operator. Here we specify a bar chart
+* there is no actually plot here as we have not yet told ggplot which kind of plot we want
+* we add the layers by simply using the '+' operator. Here we specify a bar chart. By default `geom_bar()` will calculate the height of the bars from the data, but if we want to specify the data for the y-axis we need to supply `stat="identity"`
 
 ```{r fig.width=10}
 ggplot(stats, aes(x=isolate, y=reads)) +
@@ -149,7 +152,7 @@ ggplot(stats, aes(x=isolate, y=reads)) +
   geom_bar(stat="identity", colour='black', fill='blue')
 ```
 
-* colours can be defined simply as above, but more control can be gained by specifying html web colours, a colour selector can be found [here](https://www.w3schools.com/colors/colors_picker.asp)
+* common colours can be defined simply by name as above, but more control can be gained by specifying html web colours, a colour selector can be found here https://www.w3schools.com/colors/colors_picker.asp
 
 ```{r fig.width=10}
 ggplot(stats, aes(x=isolate, y=reads)) +
@@ -187,7 +190,7 @@ ggplot(stats, aes(x=isolate, y=reads)) +
   )
 ```
 
-* we can now change the axes labels and add a title
+* we can now change the axes labels and add a title, change the font and font sizes of the axis labels
 
 ```{r fig.width=10}
 ggplot(stats, aes(x=isolate, y=reads)) +
@@ -195,7 +198,8 @@ ggplot(stats, aes(x=isolate, y=reads)) +
   ggtitle("Read counts") +
   labs(x="Isolate name", y="Read count") +  theme_bw() +
   theme(
-    axis.text.x = element_text(angle=-90, hjust=1, vjust=0.5)
+    axis.text.x = element_text(angle=-90, hjust=1, vjust=0.5, size=10),
+    axis.title  = element_text(size=15, family='Comic Sans MS')
   )
 ```
 
@@ -212,7 +216,7 @@ ggplot(stats, aes(x=isolate, y=reads)) +
   coord_flip()
 ```
 
-* in the above examples we provided the `stats` data object to the `ggplot()` function. We can just as easily pipe the data into the `ggplot()` function using `%>%`
+* in the above examples we provided the `stats` data object to the `ggplot()` function. We can just as easily pipe the data into the `ggplot()` function using `%>%`. As you can see, the `stats` variable name is now outside the `ggplot()` function
 
 ```{r fig.width=10}
 stats %>%
@@ -343,16 +347,22 @@ reads + coverage
 reads / coverage
 ```
 
-* note that we could more plots to the figure (reusing plots for demonstration here)
-
-```{r fig.height=10, fig.width=20}
-( reads + coverage ) / ( reads + coverage )
-```
-
 * We can add subplot labels (A, B etc)
 
 ```{r fig.height=10, fig.width=20}
 reads / coverage + plot_annotation(tag_levels = 'A') + plot_layout(guides = "collect")
+```
+
+* Note that we can include more plots in the figure. Here we generate four versions of the `reads` plot but changing the underlying theme. We can also add a new title, note that this is overriding the `ggtitle()` already in the `reads` plot. Can you spot the differences in the themes?
+
+```{r fig.height=10, fig.width=20}
+
+p1 <- reads + theme_bw() + ggtitle('theme_bw()')
+p2 <- reads + theme_classic() + ggtitle('theme_classic()')
+p3 <- reads + theme_minimal() + ggtitle('theme_minimal()')
+p4 <- reads + theme_dark() + ggtitle('theme_dark()')
+
+( p1 + p2 ) / ( p3 + p4 ) + plot_annotation(tag_levels = 'A')
 ```
 
 * Finally if we wish we can make interactive versions of our plots using the `plotly` package
@@ -364,9 +374,9 @@ library(plotly)
 ggplotly(coverage)
 ```
 
-# Exercise
+## Exercise 1
 
-* load the dataset stored in `/data.csv`, plot a bar chart of `county` against `popadults` for the state of Ohio (OH)
+* load the dataset stored in `data/data.csv`, plot a bar chart of `county` against `popadults` for the state of Ohio (OH)
 * remember how to rotate the x axis labels to make them more readable
 
 ```{r}
@@ -374,7 +384,7 @@ ggplotly(coverage)
 ```
 
 
-* Using the same dataset, calculate the total and generate  a scatter plot of `area` against `poptotal` 
+* Using the same dataset generate  a scatter plot of `area` against `poptotal` 
 * Try adding a regression line using the `glm` method
 
 ```{r}
@@ -393,9 +403,11 @@ ggplotly(coverage)
 * Check out this site for lots of other example plots
 http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html#1.%20Correlation
 
-## Dendrogram
+<hr style="border:2px solid gray"> </hr>
 
-* We can easily perform heirarchical clustering on a dataset and then draw a tree
+## Plotting Dendrograms
+
+* We can easily perform hierarchical clustering on a dataset and then draw a tree
 * here we use the built in dataset of `USarrests`, first explore the data
 
 ```{r}
@@ -425,6 +437,150 @@ p
 ggplotly(p)
 ```
 
+<hr style="border:2px solid gray"> </hr>
+
+## Plotting boxplots
+
+* We will use one of the built in datasets for this section, the dataset shows the effect of Vitamin C on tooth growth via orange juice (OJ) or ascorbic acid (VC). Explore the data
+
+```{r}
+ToothGrowth
+```
+
+* Lets do an initial scatter plot of `dose` against `len` colouring by `supp`
+
+```{r}
+ToothGrowth %>%
+  ggplot(aes(x=dose, y=len, color=supp)) +
+    geom_point() +
+    theme_bw()
+```
+
+* this is not that easy to visualise so lets jitter (separate) the points a little by replacing `geom_point` with `geom_jitter`
+
+```{r}
+ToothGrowth %>%
+  ggplot(aes(x=dose, y=len, group=supp, color=supp)) +
+    geom_jitter(width=0.1) +
+    theme_bw()
+```
+
+* In order to plot a boxplot the x-axis needs to be categorical data, so we can convert our `dose` values to characters using the `mutate()` and `as.character()` functions
+
+```{r}
+ToothGrowth %>%
+  mutate(dose=as.character(dose)) %>%
+  ggplot(aes(x=dose, y=len, color=supp)) +
+    geom_boxplot(color='black') +
+    theme_bw()
+```
+
+* Sometimes it is useful to keep the individual points on the plot, we can just add back the jittered layer
+
+```{r}
+ToothGrowth %>%
+  mutate(dose=as.character(dose)) %>%
+  ggplot(aes(x=dose, y=len, color=supp)) +
+    geom_boxplot(color='black') +
+    geom_jitter(width=0.1)  +
+    theme_bw()
+```
+
+* we could even further break the boxplots down by the `supp` variable, by removing `color="black"` from `geom_boxplot()`
+
+```{r}
+ToothGrowth %>%
+  mutate(dose=as.character(dose)) %>%
+  ggplot(aes(x=dose, y=len, color=supp)) +
+    geom_boxplot() +
+    geom_jitter(width=0.1)  +
+    theme_bw()
+```
+
+* lets tidy up the plot
+
+```{r}
+ToothGrowth %>%
+  mutate(dose=as.character(dose)) %>%
+  ggplot(aes(x=dose, y=len, color=supp)) +
+    geom_boxplot(color='black') +
+    geom_jitter(width=0.1)  +
+    labs(x="Vitamin C dose", y="Tooth length") +
+    theme_bw() +
+    theme(
+      legend.title = element_blank()    # this removes the legend title
+    )
+```
+
+* And if we want to add some significance labels, we can make use of the `ggsignif` package
+
+```{r}
+library(ggsignif)
+
+ToothGrowth %>%
+  mutate(dose=as.character(dose)) %>%
+  ggplot(aes(x=dose, y=len, color=supp)) +
+    geom_boxplot(color='black') +
+    geom_jitter(width=0.1)  +
+    labs(x="Vitamin C dose", y="Tooth length") +
+    theme_bw() +
+    theme(
+      legend.title = element_blank()    # this removes the legend title
+    ) +
+    ylim(0,40) +
+    geom_signif(comparisons = list(c("0.5", "1")), map_signif_level = TRUE, textsize = 6, y_position = 30, colour="black", annotation=c('**')) +
+    geom_signif(comparisons = list(c("1", "2")), map_signif_level = TRUE, textsize = 6, y_position = 36, colour="black", annotation=c('*')) 
+```
+
+<hr style="border:2px solid gray"> </hr>
+
+## Plotting line plots
+
+* Using the same tooth growth dataset, in orer to draw a line plot we need to calculate the means and standard deviations of the data. remember the data looks like this
+
+```{r}
+ToothGrowth
+```
+* we summarise the data by grouping the variables and calculating the mean/sd over these variables
+
+```{r}
+summary <- ToothGrowth %>%
+  group_by(supp, dose) %>%
+  summarise(mean=mean(len), sd=sd(len))
+
+summary
+```
+
+* it is now straigtforward to generate a line plot
+
+```{r}
+summary %>%
+  ggplot(aes(x=dose, y=mean, color=supp)) +
+    geom_line() +
+    theme_bw()
+```
+* we can also use the calculated standard deviations to add error bars
+
+```{r}
+summary %>%
+  ggplot(aes(x=dose, y=mean, color=supp)) +
+    geom_line() +
+    geom_point() +
+    geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.05) +
+    theme_bw()
+```
+
+* the error bars overlap so we can actually shift (dodge) them slightly
+
+```{r}
+summary %>%
+  ggplot(aes(x=dose, y=mean, color=supp)) +
+    geom_line() +
+    geom_point() +
+    geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.05,
+                    position=position_dodge(0.05)) +
+    theme_bw()
+```
 
 <hr style="border:2px solid gray"> </hr>
 
