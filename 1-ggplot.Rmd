@@ -26,13 +26,29 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 
 <hr style="border:2px solid gray"> </hr>
 
-# Loading the libraries
+# Install missing packages
+
+* First check that we have all the packages that we need for the tutorial
+* if any are missing then they will be installed
+
+```{r}
+if (!require(tidyverse)) install.packages("tidyverse")
+if (!require(readxl)) install.packages("readxl")
+if (!require(RSQLite)) install.packages("RSQLite")
+if (!require(DT)) install.packages("DT")
+if (!require(plotly)) install.packages("plotly")
+if (!require(ggsignif)) install.packages("ggsignif")
+if (!require(ggdendro)) install.packages("ggdendro")
+if (!require(patchwork)) install.packages("patchwork")
+```
+
+<hr style="border:2px solid gray"> </hr>
+
+# Loading the packages
 
 * We will use the various packages of the [tidyverse](https://www.tidyverse.org/)
 * This includes the popular plotting library ggplot2
 * Lets load the packages
-* if these are not installed, then first install from the mentu above or with `install.packages("tidyverse")`
-
 
 ```{r}
 library(tidyverse)
@@ -79,13 +95,13 @@ dbGetQuery(conn, "SELECT * FROM stats")
 stats <- read_xlsx('data/stats.xlsx')
 ```
 
-* the data is now stored in the `stats` variable, we can erify this by just running the variable name
+* the data is now stored in the `stats` variable, we can verify this by just running the variable name
 
 ```{r}
 stats
 ```
 
-* We can generate nicer looking tables for our reports using the `DT` package
+* We can generate nicer looking tables for our reports using the `DT` package and the `datatable` function
 
 ```{r}
 library(DT)
@@ -100,7 +116,7 @@ stats %>%
   filter(reads > 1000000)
 ```
 
-* here we filter by bother the `reads` and the `coverage` column, we now only have 8 rows
+* here we filter by both the `reads` and the `coverage` columns, we now only have 8 rows
 
 ```{r}
 stats %>%
@@ -129,9 +145,9 @@ stats %>%
 
 ## Plotting a bar charts
 
-* ggplot allows us to generate figures in layers
+* ggplot allows us to generate figures in layers, building them up piece by piece
 * initially we generate the coordinate system
-* `ggplot()` need the name of the variable containing the data and the variables to use in the plot
+* `ggplot()` need the name of the variable containing the data and which variables to use in the plot
 
 ```{r fig.width=10}
 ggplot(stats, aes(x=isolate, y=reads)) 
@@ -190,7 +206,7 @@ ggplot(stats, aes(x=isolate, y=reads)) +
   )
 ```
 
-* we can now change the axes labels and add a title, change the font and font sizes of the axis labels
+* we can now change the axes labels (`labs`) and add a title (`ggtitle`), change the font and font sizes of the axis labels
 
 ```{r fig.width=10}
 ggplot(stats, aes(x=isolate, y=reads)) +
@@ -216,7 +232,7 @@ ggplot(stats, aes(x=isolate, y=reads)) +
   coord_flip()
 ```
 
-* in the above examples we provided the `stats` data object to the `ggplot()` function. We can just as easily pipe the data into the `ggplot()` function using `%>%`. As you can see, the `stats` variable name is now outside the `ggplot()` function
+* in the above examples we provided the `stats` data object to the `ggplot()` function. Very often its easier to pipe the data into the `ggplot()` function using `%>%`. As you can see, the `stats` variable name is now outside the `ggplot()` function
 
 ```{r fig.width=10}
 stats %>%
@@ -298,11 +314,271 @@ stats %>%
     ) 
 ```
 
+
+* Finally if we wish we can make interactive versions of our plots using the `plotly` package
+* try selection regions of the plot and zooming, using the menu ribbon on the top right of the plot
+
+```{r fig.height=5, fig.width=9}
+library(plotly)
+
+coverage <- stats %>%
+  ggplot(aes(x=reads, y=coverage)) +
+    geom_point() +
+    geom_smooth() +
+    xlim(c(0, 600000)) + 
+    ylim(c(0, 100)) +
+    theme_bw() +
+    theme(
+      axis.text.x = element_text(angle=-90, hjust=1, vjust=0.5)
+    ) 
+
+ggplotly(coverage)
+```
+
+<hr style="border:2px solid gray"> </hr>
+
+## Exercise 1
+
+* load the dataset stored in `data/data.csv`, plot a bar chart of `county` against `popadults` for the state of Ohio (OH)
+* remember how to rotate the x axis labels to make them more readable,
+* add a title to the plot and rename the axes titles
+
+```{r}
+
+```
+
+* Using the same dataset generate  a scatter plot of `area` against `poptotal` 
+* Try adding a regression line using the `glm` method
+* Try removing some of the outliers from the plot. Hint, use `xlim()` and/or `ylim()`
+* Change the size and colour of the points? Hint: check the help with `?geom_line`
+* Colour the points by the `state` column
+* Set the size of the points according to the `popdensity` column
+* Move the legend position to the bottom of the chart. Hint: check the help with `?theme`
+* Add title and a subtitle
+* Change the axes titles to 'Population total' and 'County area'
+* Improve the labels on the y-axis. Hint: look at `?scale_y_continuous`
+
+```{r}
+
+```
+
+* Check out this site for lots of other example plots
+http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html
+
+<hr style="border:2px solid gray"> </hr>
+
+## Plotting boxplots
+
+* We will use one of the built in datasets for this section, the dataset shows the effect of Vitamin C on tooth growth via orange juice (OJ) or ascorbic acid (VC). Explore the data
+
+```{r}
+ToothGrowth
+```
+
+* Lets do an initial scatter plot of `dose` against `len` colouring by `supp`
+
+```{r}
+ToothGrowth %>%
+  ggplot(aes(x=dose, y=len, color=supp)) +
+    geom_point() +
+    theme_bw()
+```
+
+* this is not that easy to visualise so lets jitter (separate) the points a little by replacing `geom_point` with `geom_jitter`
+
+```{r}
+ToothGrowth %>%
+  ggplot(aes(x=dose, y=len, group=supp, color=supp)) +
+    geom_jitter(width=0.1) +
+    theme_bw()
+```
+
+* In order to plot a boxplot the x-axis needs to be categorical data, so we can convert our `dose` values to characters using the `mutate()` and `as.character()` functions
+
+```{r}
+ToothGrowth %>%
+  mutate(dose=as.character(dose)) %>%
+  ggplot(aes(x=dose, y=len, color=supp)) +
+    geom_boxplot(color='black') +
+    theme_bw()
+```
+
+* Sometimes it is useful to keep the individual points on the plot, we can just add back the jittered layer
+
+```{r}
+ToothGrowth %>%
+  mutate(dose=as.character(dose)) %>%
+  ggplot(aes(x=dose, y=len, color=supp)) +
+    geom_boxplot(color='black') +
+    geom_jitter(width=0.1)  +
+    theme_bw()
+```
+
+* we could even further break the boxplots down by the `supp` variable, by removing `color="black"` from `geom_boxplot()`
+
+```{r}
+ToothGrowth %>%
+  mutate(dose=as.character(dose)) %>%
+  ggplot(aes(x=dose, y=len, color=supp)) +
+    geom_boxplot() +
+    geom_jitter(width=0.1)  +
+    theme_bw()
+```
+
+* lets tidy up the plot, by labeling the axes and the legend properly
+
+```{r}
+ToothGrowth %>%
+  mutate(dose=as.character(dose)) %>%
+  ggplot(aes(x=dose, y=len, color=supp)) +
+    geom_boxplot(color='black') +
+    geom_jitter(width=0.1)  +
+    labs(x="Vitamin C dose", y="Tooth length") +
+    theme_bw() +
+    theme(
+      legend.title = element_blank()    # this removes the legend title
+    )
+```
+
+* And if we want to add some significance labels, we can make use of the `ggsignif` package
+
+```{r}
+library(ggsignif)
+
+ToothGrowth %>%
+  mutate(dose=as.character(dose)) %>%
+  ggplot(aes(x=dose, y=len, color=supp)) +
+    geom_boxplot(color='black') +
+    geom_jitter(width=0.1)  +
+    labs(x="Vitamin C dose", y="Tooth length") +
+    theme_bw() +
+    theme(
+      legend.title = element_blank()    # this removes the legend title
+    ) +
+    ylim(0,40) +
+    geom_signif(comparisons = list(c("0.5", "1")), map_signif_level = TRUE, textsize = 6, y_position = 30, colour="black", annotation=c('**')) +
+    geom_signif(comparisons = list(c("1", "2")), map_signif_level = TRUE, textsize = 6, y_position = 36, colour="black", annotation=c('*')) 
+```
+
+<hr style="border:2px solid gray"> </hr>
+
+## Plotting line plots
+
+* Using the same tooth growth dataset, in order to draw a line plot we need to calculate the means and standard deviations of the data. Remember the data looks like this
+
+```{r}
+ToothGrowth
+```
+* we can summarise the data by grouping the variables and calculating the mean/sd over these variables
+
+```{r}
+summary <- ToothGrowth %>%
+  group_by(supp, dose) %>%
+  summarise(mean=mean(len), sd=sd(len))
+
+summary
+```
+
+* it is now straightforward to generate a line plot
+
+```{r}
+summary %>%
+  ggplot(aes(x=dose, y=mean, color=supp)) +
+    geom_line() +
+    theme_bw()
+```
+* we can also use the calculated standard deviations to add error bars
+
+```{r}
+summary %>%
+  ggplot(aes(x=dose, y=mean, color=supp)) +
+    geom_line() +
+    geom_point() +
+    geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.05) +
+    theme_bw()
+```
+
+* the error bars overlap so we can actually shift (dodge) them slightly
+
+```{r}
+summary %>%
+  ggplot(aes(x=dose, y=mean, color=supp)) +
+    geom_line() +
+    geom_point() +
+    geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.05,
+                    position=position_dodge(0.05)) +
+    theme_bw()
+```
+
+<hr style="border:2px solid gray"> </hr>
+
+## Exercise 2
+
+* We will use another default dataset, `mtcars`. First take a look and explore
+
+```{r}
+
+```
+
+* Plot a boxplot with `cyl` on the x-axis and `mpg` on the y-axis
+* include the raw data points, jittered and coloured by carb
+* Tidy up the axes labels and remove the legend title
+
+```{r}
+
+```
+
+* Now plot a line graph showing the mean and the standard deviations of the `mpg` values, coloured by the number of carburetors
+
+```{r}
+
+```
+
+* Plot a similar plot comparing the number oc cylinders with the mpg but coloured by the number of gears
+
+```{r}
+
+```
+
+<hr style="border:2px solid gray"> </hr>
+
+## Plotting dendrograms
+
+* We can easily perform hierarchical clustering on a dataset and then draw a tree
+* here we use the built in dataset of `USarrests`, first explore the data
+
+```{r}
+USArrests
+```
+
+* Now we can perform the clustering using the `hclust` function, this uses euclidean distances by default
+* But the distance object (`dist(USArrests)`) can be any kind of similarity matrix, e.g pearson correlations
+
+```{r}
+hc <- hclust(dist(USArrests), "ave")  # hierarchical clustering
+hc
+```
+
+* Now we draw the tree using  the `ggdendrogram()` function from the ``ggdendro` package
+
+```{r fig.height=7}
+library(ggdendro)
+
+p <- ggdendrogram(hc, rotate = TRUE, size = 2)
+p
+```
+
+* remember that we can easily make the plot interactive with `ggplotly()`
+
+```{r}
+ggplotly(p)
+```
+
 <hr style="border:2px solid gray"> </hr>
 
 ## Combining plots into a figure
 
-* Lets plot both the reads and the coverage plot, only this time we will store the plots in the variables `reads` and `coverage`, notice that they won't be printed when you run the code
+* In order to combine plots into a publication ready figure, lets plot both the previous reads and the coverage plots, only this time we will store the plots in the variables `reads` and `coverage`, notice that they won't be printed when you run the code
 
 ```{r}
 reads <- stats %>%
@@ -365,224 +641,18 @@ p4 <- reads + theme_dark() + ggtitle('theme_dark()')
 ( p1 + p2 ) / ( p3 + p4 ) + plot_annotation(tag_levels = 'A')
 ```
 
-* Finally if we wish we can make interactive versions of our plots using the `plotly` package
-* try selection regions of the plot and zooming,using the menu ribbon on the top right of the plot
-
-```{r fig.height=5, fig.width=9}
-library(plotly)
-
-ggplotly(coverage)
-```
-
-## Exercise 1
-
-* load the dataset stored in `data/data.csv`, plot a bar chart of `county` against `popadults` for the state of Ohio (OH)
-* remember how to rotate the x axis labels to make them more readable
-
-```{r}
-
-```
-
-
-* Using the same dataset generate  a scatter plot of `area` against `poptotal` 
-* Try adding a regression line using the `glm` method
-
-```{r}
-
-```
-
-* Try removing some of the outliers from the plot. Hint, use `xlim()` and/or `ylim()`
-* Change the size and colour of the points? Hint: check the help with `?geom_line`
-* Colour the points by the `state` column
-* Set the size of the points according to the `popdensity` column
-* Move the legend position to the bottom of the chart. Hint: check the help with `?theme`
-* Add title and a subtitle
-* Change the axes titles to 'Population total' and 'County area'
-* Improve the labels on the y-axis. Hint: look at `?scale_y_continuous`
-
-* Check out this site for lots of other example plots
-http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html#1.%20Correlation
-
 <hr style="border:2px solid gray"> </hr>
 
-## Plotting Dendrograms
+## Exercise 3
 
-* We can easily perform hierarchical clustering on a dataset and then draw a tree
-* here we use the built in dataset of `USarrests`, first explore the data
-
-```{r}
-USArrests
-```
-
-* Now we can perform the clustering using the `hclust` function, this uses euclidean distances by default
-* But the distance object can be any kind of similarity matrix, e.g pearson correlations
+* Generate a combined figure including a boxplot and a lineplot comparing the number of cylinders with the mpg as generated above, label the subplots using a, b
 
 ```{r}
-hc <- hclust(dist(USArrests), "ave")  # hierarchical clustering
-hc
-```
 
-* Now we draw the tree using  the `ggdendrogram()` function from the ``ggdendro` package
-
-```{r fig.height=7}
-library(ggdendro)
-
-p <- ggdendrogram(hc, rotate = TRUE, size = 2)
-p
-```
-
-* remember that we can easily make the plot interactive with `ggplotly()`
-
-```{r}
-ggplotly(p)
 ```
 
 <hr style="border:2px solid gray"> </hr>
 
-## Plotting boxplots
-
-* We will use one of the built in datasets for this section, the dataset shows the effect of Vitamin C on tooth growth via orange juice (OJ) or ascorbic acid (VC). Explore the data
-
-```{r}
-ToothGrowth
-```
-
-* Lets do an initial scatter plot of `dose` against `len` colouring by `supp`
-
-```{r}
-ToothGrowth %>%
-  ggplot(aes(x=dose, y=len, color=supp)) +
-    geom_point() +
-    theme_bw()
-```
-
-* this is not that easy to visualise so lets jitter (separate) the points a little by replacing `geom_point` with `geom_jitter`
-
-```{r}
-ToothGrowth %>%
-  ggplot(aes(x=dose, y=len, group=supp, color=supp)) +
-    geom_jitter(width=0.1) +
-    theme_bw()
-```
-
-* In order to plot a boxplot the x-axis needs to be categorical data, so we can convert our `dose` values to characters using the `mutate()` and `as.character()` functions
-
-```{r}
-ToothGrowth %>%
-  mutate(dose=as.character(dose)) %>%
-  ggplot(aes(x=dose, y=len, color=supp)) +
-    geom_boxplot(color='black') +
-    theme_bw()
-```
-
-* Sometimes it is useful to keep the individual points on the plot, we can just add back the jittered layer
-
-```{r}
-ToothGrowth %>%
-  mutate(dose=as.character(dose)) %>%
-  ggplot(aes(x=dose, y=len, color=supp)) +
-    geom_boxplot(color='black') +
-    geom_jitter(width=0.1)  +
-    theme_bw()
-```
-
-* we could even further break the boxplots down by the `supp` variable, by removing `color="black"` from `geom_boxplot()`
-
-```{r}
-ToothGrowth %>%
-  mutate(dose=as.character(dose)) %>%
-  ggplot(aes(x=dose, y=len, color=supp)) +
-    geom_boxplot() +
-    geom_jitter(width=0.1)  +
-    theme_bw()
-```
-
-* lets tidy up the plot
-
-```{r}
-ToothGrowth %>%
-  mutate(dose=as.character(dose)) %>%
-  ggplot(aes(x=dose, y=len, color=supp)) +
-    geom_boxplot(color='black') +
-    geom_jitter(width=0.1)  +
-    labs(x="Vitamin C dose", y="Tooth length") +
-    theme_bw() +
-    theme(
-      legend.title = element_blank()    # this removes the legend title
-    )
-```
-
-* And if we want to add some significance labels, we can make use of the `ggsignif` package
-
-```{r}
-library(ggsignif)
-
-ToothGrowth %>%
-  mutate(dose=as.character(dose)) %>%
-  ggplot(aes(x=dose, y=len, color=supp)) +
-    geom_boxplot(color='black') +
-    geom_jitter(width=0.1)  +
-    labs(x="Vitamin C dose", y="Tooth length") +
-    theme_bw() +
-    theme(
-      legend.title = element_blank()    # this removes the legend title
-    ) +
-    ylim(0,40) +
-    geom_signif(comparisons = list(c("0.5", "1")), map_signif_level = TRUE, textsize = 6, y_position = 30, colour="black", annotation=c('**')) +
-    geom_signif(comparisons = list(c("1", "2")), map_signif_level = TRUE, textsize = 6, y_position = 36, colour="black", annotation=c('*')) 
-```
-
-<hr style="border:2px solid gray"> </hr>
-
-## Plotting line plots
-
-* Using the same tooth growth dataset, in orer to draw a line plot we need to calculate the means and standard deviations of the data. remember the data looks like this
-
-```{r}
-ToothGrowth
-```
-* we summarise the data by grouping the variables and calculating the mean/sd over these variables
-
-```{r}
-summary <- ToothGrowth %>%
-  group_by(supp, dose) %>%
-  summarise(mean=mean(len), sd=sd(len))
-
-summary
-```
-
-* it is now straigtforward to generate a line plot
-
-```{r}
-summary %>%
-  ggplot(aes(x=dose, y=mean, color=supp)) +
-    geom_line() +
-    theme_bw()
-```
-* we can also use the calculated standard deviations to add error bars
-
-```{r}
-summary %>%
-  ggplot(aes(x=dose, y=mean, color=supp)) +
-    geom_line() +
-    geom_point() +
-    geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.05) +
-    theme_bw()
-```
-
-* the error bars overlap so we can actually shift (dodge) them slightly
-
-```{r}
-summary %>%
-  ggplot(aes(x=dose, y=mean, color=supp)) +
-    geom_line() +
-    geom_point() +
-    geom_errorbar(aes(ymin=mean-sd, ymax=mean+sd), width=.05,
-                    position=position_dodge(0.05)) +
-    theme_bw()
-```
-
-<hr style="border:2px solid gray"> </hr>
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
 
