@@ -393,6 +393,39 @@ ggplotly(coverage)
 * Check out this site for lots of other example plots
 http://r-statistics.co/Top50-Ggplot2-Visualizations-MasterList-R-Code.html#1.%20Correlation
 
+## Dendrogram
+
+* We can easily perform heirarchical clustering on a dataset and then draw a tree
+* here we use the built in dataset of `USarrests`, first explore the data
+
+```{r}
+USArrests
+```
+
+* Now we can perform the clustering using the `hclust` function, this uses euclidean distances by default
+* But the distance object can be any kind of similarity matrix, e.g pearson correlations
+
+```{r}
+hc <- hclust(dist(USArrests), "ave")  # hierarchical clustering
+hc
+```
+
+* Now we draw the tree using  the `ggdendrogram()` function from the ``ggdendro` package
+
+```{r fig.height=7}
+library(ggdendro)
+
+p <- ggdendrogram(hc, rotate = TRUE, size = 2)
+p
+```
+
+* remember that we can easily make the plot interactive with `ggplotly()`
+
+```{r}
+ggplotly(p)
+```
+
+
 <hr style="border:2px solid gray"> </hr>
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
