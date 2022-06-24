@@ -3,12 +3,12 @@ title: "Using ggplot"
 output:
   html_notebook:
     code_folding: show
-    highlight: tango
+    highlight: zenburn
     number_sections: no
-    theme: sandstone
+    theme: cerulean
     toc: yes
-    toc_depth: 5
-    toc_float: no
+    toc_depth: 3
+    toc_float: yes
     df_print: paged
 ---
 
@@ -26,7 +26,7 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 
 <hr style="border:2px solid gray"> </hr>
 
-## Loading the required libraries
+# Loading the libraries
 
 * We will use the various packages of the [tidyverse](https://www.tidyverse.org/)
 * This includes the popular plotting library ggplot2
@@ -38,7 +38,7 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 library(tidyverse)
 ```
 
-## Loading some data
+# Loading the data
 
 * We now need load some data to plot
 * We can load this from most of the popular formats
@@ -125,7 +125,7 @@ stats %>%
 
 <hr style="border:2px solid gray"> </hr>
 
-## Plotting with ggplot
+# Plotting with ggplot
 
 * ggplot allows us to generate figures in layers
 * initially we generate the coordinate system
@@ -252,7 +252,7 @@ stats %>%
 
 <hr style="border:2px solid gray"> </hr>
 
-### Plotting a scatter plot
+## Plotting a scatter plot
 
 * Lets plot a different type of graph, this time plotting `reads` against `coverage`
 
@@ -281,7 +281,7 @@ stats %>%
     
 <hr style="border:2px solid gray"> </hr>
 
-### Combining plots into a figure
+## Combining plots into a figure
 
 * Lets plot both the reads and the coverage plot, only this time we will store the plots in the variables `reads` and `coverage`, notice that they won't be printed when you run the code
 
@@ -340,7 +340,7 @@ reads / coverage
 reads / coverage + plot_annotation(tag_levels = 'A') + plot_layout(guides = "collect")
 ```
 
-* Finally if we wish we can make interactve versions of our plots using the `plotly` package
+* Finally if we wish we can make interactive versions of our plots using the `plotly` package
 * try selection regions of the plot and zooming,using the menu ribbon on the top right of the plot
 
 ```{r fig.height=5, fig.width=9}
@@ -348,6 +348,25 @@ library(plotly)
 
 ggplotly(coverage)
 ```
+
+# Exercise
+
+* load the dataset stored in `data.xlsx`, plot a bar chart of someting against someting
+
+```{r}
+
+
+```
+
+
+* Using the same dataset, calculate the total and generate  a scatter plot of ... against ... 
+* Try adding a regression line using the `glm` method
+
+```{r}
+
+
+```
+
 
 <hr style="border:2px solid gray"> </hr>
 
